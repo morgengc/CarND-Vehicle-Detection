@@ -11,13 +11,20 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 [image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
-[video1]: ./project_video.mp4
+[image2]: ./output_images/hog_image.jpg
+[image3]: ./examples/sliding_windows.png
+[image4]: ./output_images/search_and_classify.jpg
+[image5]: ./output_images/heatmap_and_bbox.jpg
+[image6]: ./output_images/labels_map.jpg
+[image7]: ./output_images/last_frame_with_bbox.jpg
+
+Python files in this project:
+
+* `utils.py`: Contains all utility functions
+* `classifier.py`: SVM classifier, write all parameters to a pickle file after training
+* `main.py`: Read frame from video stream, detect vehicle in the frame, and write to an output video stream
+* `tracker.py`: Tracking heat map
+* `detecting.py`: Test script to visualize various images
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
 Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -34,7 +41,7 @@ You're reading it!
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-The code for this step is contained in the first code cell of the IPython notebook (or in lines # through # of the file called `some_file.py`).  
+The code for this step is contained in funtion `extract_features()` at line 129 of the file called `utils.py`. 
 
 I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
 
@@ -42,24 +49,28 @@ I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an 
 
 I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
 
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
-
+Here is an example using the `YCrCb` color space and HOG parameters of `orientations=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`(function `preview_hog_image()` in `detecting.py`):
 
 ![alt text][image2]
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
-I tried various combinations of parameters and...
+I tried various combinations of parameters and I found these value made a better result:
+
+* orientations=9
+* pixels_per_cell=(8, 8)
+* cells_per_block=(2, 2)
+* hog_channel='ALL'
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM using...
+I trained a linear SVM using HOG parameters listed in previous section, to see these settings please refer to line 25 to 34 in `classifier.py` for detail.
 
 ### Sliding Window Search
 
 #### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
+I decided to search a stripe region limited to [ystart=400, yend=656], because no car will appear in regions beyond this stripe. And I choose `overlap = 0.5` for test.
 
 ![alt text][image3]
 
@@ -74,7 +85,8 @@ Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spat
 ### Video Implementation
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
+
+Here's a [link to my video result](./project_video.mp4), and a [link to video combined with lane line](./project_video_lane_output_2scales.mp4).
 
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
