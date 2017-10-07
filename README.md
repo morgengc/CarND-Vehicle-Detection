@@ -76,8 +76,6 @@ I decided to search a stripe region limited to [ystart=400, yend=656], because n
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
-
 ![alt text][image4]
 
 ---
@@ -112,5 +110,10 @@ Here the resulting bounding boxes are drawn onto the last frame in the series:
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+* Speed. Despite all the efforts in optimizing the algorithm, the detection is still far from real-time. I don't really know how to dramatically improve the performance with a CPU-based solution. However, given that most of the pipeline is easily parallelizable, I expect a significant performance gain using the same pipeline on a GPU.
 
+* Overlapping vehicles. The current algorithm for drawing bounding boxes is very simple: look at the regions marked by scipy.ndimage.measurements.label() and find the box that encloses the whole region. When images of vehicles overlap, this results in a single large box that covers both vehicles. Perhaps more sophisticated / computationally intensive algorithms can handle this.
+
+* Front of the vehicles, and vehicles in the opposite directions. The GTI dataset mostly captures the rear of vehicles, so the classifier trained on it does a better job detecting rear than front. This is not ideal because when vehicles enter the frame we typically see their front first. To improve this, we can try to collect more diverse images, as well as data augmentation.
+
+* Classifier performance. Through validation, I decided on a model that achieved about 0.995 accuracy on the given dataset. However, given that we are making a lot of predictions over many frames, even a 0.5% error rate can be problematic. 
